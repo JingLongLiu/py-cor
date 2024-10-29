@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>OCR 识别</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .section {
+            width: 45%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0px 0px 5px #aaa;
+            border-radius: 5px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+        .center-button {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">OCR 图片识别</h1>
+
+    <div class="container">
+        <!-- 左侧上传图片1和识别结果 -->
+        <div class="section">
+            <form id="uploadForm1" enctype="multipart/form-data">
+                <h2>图片1</h2>
+                <label for="image1">上传图片1:</label>
+                <input type="file" name="image" id="image1" accept="image/*" onchange="uploadImage(1)">
+            </form>
+            <h3>识别结果:</h3>
+            <textarea id="desc1" rows="10" cols="50"></textarea>
+        </div>
+
+        <!-- 右侧上传图片2和识别结果 -->
+        <div class="section">
+            <form id="uploadForm2" enctype="multipart/form-data">
+                <h2>图片2</h2>
+                <label for="image2">上传图片2:</label>
+                <input type="file" name="image" id="image2" accept="image/*" onchange="uploadImage(2)">
+            </form>
+            <h3>识别结果:</h3>
+            <textarea id="desc2" rows="10" cols="50"></textarea>
+        </div>
+    </div>
+
+    <!-- 中间的比较按钮 -->
+    <div class="center-button">
+        <button onclick="compareText()">比较内容</button>
+    </div>
+
+    <script>
+        // 上传图片并显示识别结果
+        function uploadImage(imageNum) {
+            const formData = new FormData(document.getElementById(`uploadForm${imageNum}`));
+
+            fetch(`/upload/${imageNum}`, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`desc${data.image_num}`).value = data.text;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        // 比较两个文本框内容
+        function compareText() {
+            const text1 = document.getElementById("desc1").value;
+            const text2 = document.getElementById("desc2").value;
+
+            if (text1 === text2) {
+                alert("内容相同！");
+            } else {
+                // 如果内容不相同，找到不同的部分并展示在提示框中
+                const differences = findDifferences(text1, text2);
+                alert("内容不相同！不相同的部分:\n" + differences);
+            }
+        }
+
+        // 比较并找到不同部分的函数
+        function findDifferences(text1, text2) {
+            let result = "";
+            const maxLength = Math.max(text1.length, text2.length);
+            for (let i = 0; i < maxLength; i++) {
+                if (text1[i] !== text2[i]) {
+                    // 不同的部分用 [ ] 包裹
+                    result += `[${text1[i] || ""} / ${text2[i] || ""}] `;
+                }
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
